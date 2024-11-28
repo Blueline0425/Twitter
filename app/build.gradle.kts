@@ -37,23 +37,41 @@ android {
     buildFeatures {
         compose = true
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.3" // Compose 버전에 맞는 Kotlin Compiler Extension
+    }
 }
 
 dependencies {
-
+    // Core libraries
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
+
+    // Jetpack Compose libraries
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.foundation:foundation") // Foundation 라이브러리
+    implementation(platform("androidx.compose:compose-bom:2024.02.00")) // BOM으로 통일
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.material:material") // Material 라이브러리
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.runtime:runtime-livedata")
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.core)
+    implementation(libs.androidx.core)
+    implementation(libs.androidx.core)
+    implementation(libs.androidx.material3.android)
+    implementation(libs.androidx.core)
+    debugImplementation("androidx.compose.ui:ui-tooling")
+
+    // Test dependencies
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+
+
+    // Debug dependencies
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
