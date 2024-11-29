@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
@@ -19,21 +20,31 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 
 @OptIn(ExperimentalMaterial3Api::class)
-//@Preview(showBackground = true)
 @Composable
-fun FollowingScreen(navController: NavHostController) {
+fun FollowingScreen(navController: NavHostController, userId: String) {
+    val followingList = remember { mutableStateListOf<UserInfo>() }
+
+    LaunchedEffect(userId) {
+        val list = getFollowingList(userId)
+        followingList.clear()
+        followingList.addAll(list)
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Following") },
                 navigationIcon = {
-                    IconButton(onClick = { /* 뒤로 가기 로직 */ }) {
+                    IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 }
@@ -41,10 +52,10 @@ fun FollowingScreen(navController: NavHostController) {
         }
     ) { innerPadding ->
         LazyColumn(modifier = Modifier.padding(innerPadding)) {
-            items(10) { index ->
+            items(followingList) { user ->
                 FollowingItem(
-                    nickname = "nickname$index",
-                    id = "@id$index"
+                    nickname = user.nickname,
+                    id = "@${user.userId}"
                 )
             }
         }

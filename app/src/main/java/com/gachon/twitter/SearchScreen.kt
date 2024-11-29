@@ -4,8 +4,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +17,7 @@ import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Card
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
@@ -28,6 +31,10 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
@@ -35,10 +42,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Divider
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.width
 
 //@Preview(showBackground = true)
 @Composable
-fun SearchScreen(navController: NavHostController) {
+fun SearchScreen(navController: NavHostController, userViewModel: UserViewModel) {
+    val loggedInUserId = userViewModel.loggedInUserId.collectAsState().value
+    val searchText = remember { mutableStateOf("") }
+    val searchResults = remember { mutableStateOf<Any>(emptyList<Any>()) }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -83,35 +100,98 @@ fun SearchScreen(navController: NavHostController) {
                 )
                 BottomNavigationItem(
                     selected = false,
-                    onClick = { navController.navigate("profile") },
+                    onClick = { navController.navigate("profile/$loggedInUserId") },
                     label = { Text("Profile", color = Color.White) },
                     icon = { Icon(Icons.Default.Person, contentDescription = null, tint = Color.White) }
                 )
             }
         }
     ) { innerPadding ->
-        // 게시글 리스트 UI 구현
         Column(modifier = Modifier
             .padding(innerPadding)
             .fillMaxSize()) {
-            // 검색 입력창
-            OutlinedTextField(
-                value = "",
-                onValueChange = { /* 검색어 입력 처리 */ },
-                label = { Text("정확히 입력하세요") },
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
-            )
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                OutlinedTextField(
+                    value = searchText.value,
+                    onValueChange = { searchText.value = it },
+                    label = { Text("검색어를 입력하세요") },
+                    modifier = Modifier.weight(1f),
+                    trailingIcon = {
+                        IconButton(onClick = {
+                            scope.launch {
+                                if (searchText.value.startsWith("@")) {
+                                    // @로 시작하면 사용자 검색
+                                    val query = searchText.value.substring(1)
+                                    searchResults.value = searchUsers(query)
+                                } else {
+                                    // 그 외에는 게시글 검색
+                                    searchResults.value = searchPosts(searchText.value)
+                                }
+                            }
+                        }) {
+                            Icon(Icons.Default.Search, "검색")
+                        }
+                    }
+                )
+            }
 
-            // 게시물 리스트
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(7) { index ->
-                    PostItem(
-                        nickname = "nickname$index",
-                        id = "@id$index",
-                        text = "text field $index"
-                    )
+            when (val results = searchResults.value) {
+                is List<*> -> {
+                    when {
+                        results.firstOrNull() is UserInfo -> {
+                            LazyColumn {
+                                items(results as List<UserInfo>) { user ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { 
+                                                navController.navigate("profile/${user.userId}")
+                                            }
+                                            .padding(16.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Person,
+                                            contentDescription = "Profile Picture",
+                                            modifier = Modifier.size(40.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column {
+                                            Text(text = user.nickname, style = MaterialTheme.typography.subtitle1)
+                                            Text(text = "@${user.userId}", style = MaterialTheme.typography.body1)
+                                        }
+                                    }
+                                    Divider(color = Color.LightGray, thickness = 0.5.dp)
+                                }
+                            }
+                        }
+                        results.firstOrNull() is Post -> {
+                            LazyColumn {
+                                items(results as List<Post>) { post ->
+                                    Column(modifier = Modifier.padding(8.dp)) {
+                                        Text(
+                                            text = "${post.nickname} @${post.userId}",
+                                            fontSize = 20.sp
+                                        )
+                                        Text(post.content ?: "내용 없음")
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Row {
+                                            Text("댓글 수: ${post.numOfLikes ?: 0}", color = Color.Blue)
+                                            Text(" | 좋아요 수: ${post.numOfLikes ?: 0}", color = Color.Blue)
+                                        }
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text("태그: ${post.tag ?: "없음"}", color = Color.Gray)
+                                        Text("업로드 시간: ${post.uploadTimestamp?.let { formatDate(it) } ?: "알 수 없음"}")
+                                    }
+                                    Divider(color = Color.Black, thickness = 1.dp)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

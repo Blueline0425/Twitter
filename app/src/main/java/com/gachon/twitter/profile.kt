@@ -2,8 +2,10 @@ package com.gachon.twitter
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -15,32 +17,42 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
-
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.lazy.items
+import java.text.SimpleDateFormat
+import java.util.Locale
+import androidx.compose.material.Divider
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.clickable
 //@Preview(showBackground = true)
 @Composable
-fun ProfileScreen(navController: NavHostController) {
+fun ProfileScreen(navController: NavHostController, userId: String, userViewModel: UserViewModel) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val nickname = remember { mutableStateOf("") }
+    val isFollowing = remember { mutableStateOf(false) }
+    val loggedInUserId = userViewModel.loggedInUserId.collectAsState().value
+
+    LaunchedEffect(userId, isFollowing.value) {
+        nickname.value = getNicknameFromUserId(userId)
+        isFollowing.value = checkIfFollowing(loggedInUserId.toString(), userId)
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Profile") }
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate("post") },
-                backgroundColor = Color(0xFF1DA1F2))
-
-            {
-                Image(imageVector = Icons.Default.Add,
-                    contentDescription = "Profile Picture",
-                    modifier = Modifier
-                        .size(48.dp)
-                        .padding(8.dp),
-                    colorFilter = ColorFilter.tint(Color.White))
-
-            }
         },
         bottomBar = {
             BottomNavigation {
@@ -64,7 +76,7 @@ fun ProfileScreen(navController: NavHostController) {
                 )
                 BottomNavigationItem(
                     selected = true,
-                    onClick = { navController.navigate("profile") },
+                    onClick = { navController.navigate("profile/${loggedInUserId}") },
                     label = { Text("Profile") },
                     icon = { Icon(Icons.Default.Person, contentDescription = null) }
                 )
@@ -76,23 +88,54 @@ fun ProfileScreen(navController: NavHostController) {
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            // 프로필 섹션
-            ProfileSection(navController)
-
-            // 게시글 리스트
-            PostList()
+            ProfileSection(nickname.value, userId, navController, 
+                isFollowing.value, loggedInUserId.toString(),
+                onFollowClick = { 
+                    coroutineScope.launch {
+                        if (isFollowing.value) {
+                            unfollowUser(loggedInUserId.toString(), userId)
+                            isFollowing.value = false
+                        } else {
+                            followUser(loggedInUserId.toString(), userId)
+                            isFollowing.value = true
+                        }
+                    }
+                }
+            )
+            PostList(userId)
         }
     }
 }
 
 @Composable
-fun ProfileSection(navController: NavHostController) {
+fun ProfileSection(
+    nickname: String, 
+    userId: String, 
+    navController: NavHostController,
+    isFollowing: Boolean,
+    loggedInUserId: String,
+    onFollowClick: () -> Unit
+) {
+    val followingCount = remember { mutableStateOf(0) }
+    val followerCount = remember { mutableStateOf(0) }
+    val isFollowingState = remember { mutableStateOf(isFollowing) }
+    
+    LaunchedEffect(isFollowingState.value) {
+        followingCount.value = getFollowingCount(userId)
+        followerCount.value = getFollowerCount(userId)
+    }
+
+    LaunchedEffect(userId) {
+        followingCount.value = getFollowingCount(userId)
+        followerCount.value = getFollowerCount(userId)
+        isFollowingState.value = isFollowing
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        // 배경 색상
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -106,7 +149,6 @@ fun ProfileSection(navController: NavHostController) {
                 .align(Alignment.CenterStart)
                 .padding(16.dp)
         ) {
-            // 프로필 사진
             Image(
                 imageVector = Icons.Default.AccountCircle,
                 contentDescription = "Profile Picture",
@@ -116,21 +158,43 @@ fun ProfileSection(navController: NavHostController) {
                 colorFilter = ColorFilter.tint(Color.Gray)
             )
 
-            // 닉네임 및 아이디
-            Text(text = "한웅재", style = MaterialTheme.typography.h6)
-            Text(text = "@woongjae2435", style = MaterialTheme.typography.body2, color = Color.Gray)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(text = nickname, style = MaterialTheme.typography.h6)
+                    Text(text = "@$userId", style = MaterialTheme.typography.body2, color = Color.Gray)
+                }
+                
+                if (loggedInUserId != userId) {
+                    Button(
+                        onClick = { 
+                            isFollowingState.value = !isFollowingState.value
+                            onFollowClick()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = if (isFollowingState.value) Color.White else Color(0xFF1DA1F2),
+                            contentColor = if (isFollowingState.value) Color.Red else Color.White
+                        ),
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Text(if (isFollowingState.value) "언팔로잉" else "팔로잉")
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Following 및 Follower 정보
             Row {
                 // 팔로잉 텍스트
                 Text(
-                    text = "1",
+                    text = followingCount.value.toString(),
                     style = MaterialTheme.typography.h6,
                     color = Color.Black,
                     modifier = Modifier
-                        //.clickable { navController.navigate("following") } // 클릭 시 이동
+                        .clickable { navController.navigate("following/$userId") }
                         .padding(0.dp)
                 )
                 Text(
@@ -138,17 +202,17 @@ fun ProfileSection(navController: NavHostController) {
                     style = MaterialTheme.typography.body2,
                     color = Color.Gray,
                     modifier = Modifier
-                        .clickable { navController.navigate("following") } // 클릭 시 이동
+                        .clickable { navController.navigate("following/$userId") }
                         .padding(0.dp)
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 // 팔로워 텍스트
                 Text(
-                    text = "0",
+                    text = followerCount.value.toString(),
                     style = MaterialTheme.typography.h6,
                     color = Color.Black,
                     modifier = Modifier
-                        //.clickable { navController.navigate("follower") } // 클릭 시 이동
+                        .clickable { navController.navigate("follower/$userId") }
                         .padding(0.dp)
                 )
                 Text(
@@ -156,7 +220,7 @@ fun ProfileSection(navController: NavHostController) {
                     style = MaterialTheme.typography.body2,
                     color = Color.Gray,
                     modifier = Modifier
-                        .clickable { navController.navigate("follower") } // 클릭 시 이동
+                        .clickable { navController.navigate("follower/$userId") }
                         .padding(0.dp)
                 )
             }
@@ -165,48 +229,33 @@ fun ProfileSection(navController: NavHostController) {
 }
 
 @Composable
-fun PostList() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        // 예시 게시글
-        repeat(3) { index ->
-            PostItem(nickname = "Nickname $index", text = "게시글 내용 $index")
-            Spacer(modifier = Modifier.height(16.dp))
-        }
+fun PostList(userId: String) {
+    val posts = remember { mutableStateListOf<Post>() }
+
+    LaunchedEffect(userId) {
+        val fetchedPosts = fetchPostsForUser(userId)
+        posts.addAll(fetchedPosts)
     }
-}
 
-@Composable
-fun PostItem(nickname: String, text: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-    ) {
-        // 닉네임
-        Text(text = "$nickname @username", style = MaterialTheme.typography.subtitle1)
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // 게시글 내용
-        Text(text = text, style = MaterialTheme.typography.body1)
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // 좋아요 및 댓글 버튼
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            TextButton(onClick = { /* 댓글 로직 */ }) {
-                Text("댓글 수")
+    LazyColumn {
+        items(posts) { post ->
+            Column(modifier = Modifier.padding(8.dp)) {
+                Text(
+                    text = "${post.nickname} @${post.userId}",
+                    fontSize = 20.sp
+                )
+                Text(post.content ?: "내용 없음")
+                Spacer(modifier = Modifier.height(4.dp))
+                Row {
+                    Text("댓글 수: ${post.numOfLikes ?: 0}", color = Color.Blue)
+                    Text(" | 좋아요 수: ${post.numOfLikes ?: 0}", color = Color.Blue)
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("태그: ${post.tag ?: "없음"}", color = Color.Gray)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("업로드 시간: ${post.uploadTimestamp?.let { formatDate(it) } ?: "알 수 없음"}")
             }
-            TextButton(onClick = { /* 좋아요 로직 */ }) {
-                Text("좋아요 수")
-            }
+            Divider(color = Color.Black, thickness = 1.dp)
         }
     }
 }

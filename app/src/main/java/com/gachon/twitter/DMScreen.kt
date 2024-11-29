@@ -6,6 +6,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
@@ -32,26 +33,28 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.Divider
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable
-fun MainMenuScreen(navController: NavHostController, userViewModel: UserViewModel) {
+fun DMScreen(navController: NavHostController, userViewModel: UserViewModel) {
     val context = LocalContext.current
-    val posts = remember { mutableStateListOf<Post>() }
+    val messages = remember { mutableStateListOf<DirectMessage>() }
     val loggedInUserId = userViewModel.loggedInUserId.collectAsState().value
-    LaunchedEffect(Unit) {
-        val fetchedPosts = fetchPosts(loggedInUserId.toString())
-        posts.addAll(fetchedPosts)
+
+    LaunchedEffect(loggedInUserId) {
+        loggedInUserId?.let {
+            val fetchedMessages = fetchChatList(it)
+            messages.clear()
+            messages.addAll(fetchedMessages)
+        }
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Main Menu") })
+            TopAppBar(title = { Text("DM") })
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -88,7 +91,9 @@ fun MainMenuScreen(navController: NavHostController, userViewModel: UserViewMode
                 )
                 BottomNavigationItem(
                     selected = false,
-                    onClick = { navController.navigate("profile/$loggedInUserId") },
+                    onClick = {
+                        navController.navigate("profile/$loggedInUserId")
+                    },
                     label = { Text("Profile") },
                     icon = { Icon(Icons.Default.Person, contentDescription = null) }
                 )
@@ -97,31 +102,24 @@ fun MainMenuScreen(navController: NavHostController, userViewModel: UserViewMode
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             LazyColumn {
-                items(posts) { post ->
-                    Column(modifier = Modifier.padding(8.dp)) {
+                items(messages) { message ->
+                    Column(modifier = Modifier
+                        .padding(8.dp)
+                        .clickable {
+                            navController.navigate("dmmsg/${message.userId}/${message.nickname}")
+                        }
+                    ) {
                         Text(
-                            text = "${post.nickname} @${post.userId}",
+                            text = "${message.nickname} @${message.userId}",
                             fontSize = 20.sp
                         )
-                        Text(post.content ?: "내용 없음")
+                        Text(message.content)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Row {
-                            Text("댓글 수: ${post.numOfLikes ?: 0}", color = Color.Blue)
-                            Text(" | 좋아요 수: ${post.numOfLikes ?: 0}", color = Color.Blue)
-                        }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("태그: ${post.tag ?: "없음"}", color = Color.Gray)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("업로드 시간: ${post.uploadTimestamp?.let { formatDate(it) } ?: "알 수 없음"}")
+                        Text("보낸 시간: ${formatDate(message.timestamp)}", color = Color.Gray)
                     }
                     Divider(color = Color.Black, thickness = 1.dp)
                 }
             }
         }
     }
-}
-
-fun formatDate(timestamp: java.sql.Timestamp): String {
-    val sdf = SimpleDateFormat("yyyy/MM/dd, HH:mm:ss", Locale.getDefault())
-    return sdf.format(timestamp)
 }

@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.androidx.material3.android)
     implementation(libs.androidx.core)
+    implementation(files("..\\libs\\mysql-connector-java-5.1.49.jar"))
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     // Test dependencies
@@ -69,8 +70,14 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    //mysql
+    //implementation fileTree(dir: "C:\Users\yesjae\AndroidStudioProjects\Twitter\.idea\modules\app\lib\", include: ["*.jar"])
+    //implementation("mysql:mysql-connector-java:8.0.15")
 
-
+    // coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+    //implementation("com.mysql:mysql-connector-j:8.0.31")
     // Debug dependencies
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
