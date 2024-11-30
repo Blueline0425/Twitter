@@ -27,15 +27,16 @@ import kotlinx.coroutines.launch
 @Composable
 fun DMmsgScreen(navController: NavHostController, userId: String, nickname: String, userViewModel: UserViewModel) {
     var messageText by remember { mutableStateOf(TextFieldValue("")) }
-    val messages = remember { mutableStateListOf<DirectMessage>() }
+    val messages = remember { mutableStateListOf<Message>() }
     val coroutineScope = rememberCoroutineScope()
     val loggedInUserId = userViewModel.loggedInUserId.collectAsState().value
 
     LaunchedEffect(userId) {
         // 초기 메시지 가져오기
-        val fetchedMessages = fetchMessagesWithUser(userId)
+        val fetchedMessages = fetchMessagesWithUser(userId, loggedInUserId.toString())
         messages.clear()
         messages.addAll(fetchedMessages)
+        // 읽음 처리
         markMessagesAsRead(userId, loggedInUserId.toString())
     }
 
@@ -72,7 +73,7 @@ fun DMmsgScreen(navController: NavHostController, userId: String, nickname: Stri
                             sendMessage(loggedInUserId.toString(), userId, messageText.text)
                             messageText = TextFieldValue("") // 전송 후 입력 필드 초기화
                             // 메시지 리스트 업데이트
-                            val updatedMessages = fetchMessagesWithUser(userId)
+                            val updatedMessages = fetchMessagesWithUser(userId, loggedInUserId.toString())
                             messages.clear()
                             messages.addAll(updatedMessages)
                         }
@@ -89,7 +90,7 @@ fun DMmsgScreen(navController: NavHostController, userId: String, nickname: Stri
                 .fillMaxSize()
         ) {
             items(messages) { message ->
-                if (message.userId == loggedInUserId) { // 본인이 보낸 메시지
+                if (message.senderId == loggedInUserId) { // 본인이 보낸 메시지
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End

@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
                     ProfileScreen(navController, userId, userViewModel)
                 }
                 composable("search") { SearchScreen(navController, userViewModel) }
-                composable("post") { WritePostScreen(navController) }
+                composable("post") { WritePostScreen(navController, userViewModel) }
                 composable("following/{userId}") { backStackEntry ->
                     val userId = backStackEntry.arguments?.getString("userId") ?: ""
                     FollowingScreen(navController, userId)
@@ -35,13 +35,22 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("changepw") { ChangePasswordScreen(navController) }
                 composable("createuser") { CreateUserUI(navController) }
-                composable("seepost") { SeePost(navController) }
-                composable("seecomment") { SeeComment(navController) }
+                //composable("seepost") { SeePost(navController) }
+                composable("seecomment/{postId}/{commentId}") { backStackEntry ->
+                    val postId = backStackEntry.arguments?.getString("postId") ?: ""
+                    val commentId = backStackEntry.arguments?.getString("commentId") ?: ""
+                    SeeComment(navController, postId, commentId, userViewModel)
+                }
                 composable("dm") { DMScreen(navController, userViewModel) }
+                composable("dmsearch") { DMSearchScreen(navController) }
                 composable("dmmsg/{userId}/{nickname}") { backStackEntry ->
                     val userId = backStackEntry.arguments?.getString("userId") ?: ""
                     val nickname = backStackEntry.arguments?.getString("nickname") ?: ""
                     DMmsgScreen(navController, userId, nickname, userViewModel)
+                }
+                composable("seepost/{postId}") { backStackEntry ->
+                    val postId = backStackEntry.arguments?.getString("postId") ?: ""
+                    SeePost(navController, postId, userViewModel)
                 }
             }
         }

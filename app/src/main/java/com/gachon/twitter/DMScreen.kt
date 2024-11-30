@@ -32,23 +32,41 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.Divider
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.sp
+import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Locale
+
+// DirectMessage를 Message로 변경하고, 필요한 추가 데이터 클래스 정의
+data class ChatListItem(
+    val userId: String,
+    val nickname: String,
+    val content: String,
+    val timestamp: Timestamp
+)
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable
 fun DMScreen(navController: NavHostController, userViewModel: UserViewModel) {
     val context = LocalContext.current
-    val messages = remember { mutableStateListOf<DirectMessage>() }
+    val messages = remember { mutableStateListOf<ChatListItem>() }
     val loggedInUserId = userViewModel.loggedInUserId.collectAsState().value
 
     LaunchedEffect(loggedInUserId) {
         loggedInUserId?.let {
             val fetchedMessages = fetchChatList(it)
             messages.clear()
-            messages.addAll(fetchedMessages)
+            messages.addAll(fetchedMessages.map { message ->
+                ChatListItem(
+                    userId = if (message.senderId == loggedInUserId) message.receiverId else message.senderId,
+                    nickname = getNicknameFromUserId(if (message.senderId == loggedInUserId) message.receiverId else message.senderId),
+                    content = message.content,
+                    timestamp = message.timestamp
+                )
+            })
         }
     }
 
@@ -58,12 +76,12 @@ fun DMScreen(navController: NavHostController, userViewModel: UserViewModel) {
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate("post") },
+                onClick = { navController.navigate("dmsearch") },
                 backgroundColor = Color(0xFF1DA1F2)
             ) {
                 Image(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add Post",
+                    contentDescription = "New Message",
                     modifier = Modifier.size(48.dp),
                     colorFilter = ColorFilter.tint(Color.White)
                 )
@@ -102,20 +120,34 @@ fun DMScreen(navController: NavHostController, userViewModel: UserViewModel) {
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             LazyColumn {
-                items(messages) { message ->
+                items(messages) { chatItem ->
                     Column(modifier = Modifier
                         .padding(8.dp)
                         .clickable {
-                            navController.navigate("dmmsg/${message.userId}/${message.nickname}")
+                            navController.navigate("dmmsg/${chatItem.userId}/${chatItem.nickname}")
                         }
                     ) {
-                        Text(
-                            text = "${message.nickname} @${message.userId}",
-                            fontSize = 20.sp
-                        )
-                        Text(message.content)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        ) {
+                            Image(
+                                imageVector = Icons.Default.AccountCircle,
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clickable { navController.navigate("profile/${chatItem.userId}") },
+                                colorFilter = ColorFilter.tint(Color.Gray)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "${chatItem.nickname} @${chatItem.userId}",
+                                fontSize = 20.sp
+                            )
+                        }
+                        Text(chatItem.content)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("보낸 시간: ${formatDate(message.timestamp)}", color = Color.Gray)
+                        Text("보낸 시간: ${formatDate(chatItem.timestamp)}", color = Color.Gray)
                     }
                     Divider(color = Color.Black, thickness = 1.dp)
                 }

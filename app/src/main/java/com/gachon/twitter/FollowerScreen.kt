@@ -9,9 +9,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,10 +25,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.compose.foundation.Image
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.foundation.Image
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +62,8 @@ fun FollowerScreen(navController: NavHostController, userId: String) {
             items(followerList) { user ->
                 FollowerItem(
                     nickname = user.nickname,
-                    id = "@${user.userId}"
+                    id = "@${user.userId}",
+                    navController = navController
                 )
             }
         }
@@ -64,17 +71,20 @@ fun FollowerScreen(navController: NavHostController, userId: String) {
 }
 
 @Composable
-fun FollowerItem(nickname: String, id: String) {
+fun FollowerItem(nickname: String, id: String, navController: NavHostController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
+            .clickable { navController.navigate("profile/${id.replace("@", "")}") }
     ) {
-        // 프로필 사진 (예시로 원형 아이콘 사용)
-        Icon(
-            imageVector = Icons.Default.Person,
+        Image(
+            imageVector = Icons.Default.AccountCircle,
             contentDescription = "Profile Picture",
-            modifier = Modifier.size(40.dp)
+            modifier = Modifier
+                .size(40.dp)
+                .clickable { navController.navigate("profile/${id.replace("@", "")}") },
+            colorFilter = ColorFilter.tint(Color.Gray)
         )
         Spacer(modifier = Modifier.width(8.dp))
         Column {

@@ -1,5 +1,6 @@
 package com.gachon.twitter
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -48,6 +49,9 @@ import androidx.compose.material.Divider
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.ColorFilter
 
 //@Preview(showBackground = true)
 @Composable
@@ -66,13 +70,11 @@ fun SearchScreen(navController: NavHostController, userViewModel: UserViewModel)
                 onClick = { navController.navigate("post") },
                 backgroundColor = Color(0xFF1DA1F2)
             ) {
-                Icon(
+                Image(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Write a post",
-                    modifier = Modifier
-                        .size(48.dp)
-                        .padding(8.dp),
-                    tint = Color.White
+                    contentDescription = "Add Post",
+                    modifier = Modifier.size(48.dp),
+                    colorFilter = ColorFilter.tint(Color.White)
                 )
             }
         },
@@ -154,10 +156,11 @@ fun SearchScreen(navController: NavHostController, userViewModel: UserViewModel)
                                             }
                                             .padding(16.dp)
                                     ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Person,
+                                        Image(
+                                            imageVector = Icons.Default.AccountCircle,
                                             contentDescription = "Profile Picture",
-                                            modifier = Modifier.size(40.dp)
+                                            modifier = Modifier.size(40.dp),
+                                            colorFilter = ColorFilter.tint(Color.Gray)
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Column {
@@ -173,15 +176,29 @@ fun SearchScreen(navController: NavHostController, userViewModel: UserViewModel)
                             LazyColumn {
                                 items(results as List<Post>) { post ->
                                     Column(modifier = Modifier.padding(8.dp)) {
-                                        Text(
-                                            text = "${post.nickname} @${post.userId}",
-                                            fontSize = 20.sp
-                                        )
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.padding(bottom = 4.dp)
+                                        ) {
+                                            Image(
+                                                imageVector = Icons.Default.AccountCircle,
+                                                contentDescription = "Profile Picture",
+                                                modifier = Modifier
+                                                    .size(40.dp)
+                                                    .clickable { navController.navigate("profile/${post.userId}") },
+                                                colorFilter = ColorFilter.tint(Color.Gray)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = "${post.nickname} @${post.userId}",
+                                                fontSize = 20.sp
+                                            )
+                                        }
                                         Text(post.content ?: "내용 없음")
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Row {
-                                            Text("댓글 수: ${post.numOfLikes ?: 0}", color = Color.Blue)
-                                            Text(" | 좋아요 수: ${post.numOfLikes ?: 0}", color = Color.Blue)
+                                            Text("댓글 수: ${post.numOfComments}", color = Color.Blue)
+                                            Text(" | 좋아요 수: ${post.numOfLikes}", color = Color.Blue)
                                         }
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text("태그: ${post.tag ?: "없음"}", color = Color.Gray)

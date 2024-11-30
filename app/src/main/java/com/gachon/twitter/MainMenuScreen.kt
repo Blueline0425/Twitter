@@ -6,6 +6,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
@@ -31,9 +32,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.Divider
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -98,16 +101,42 @@ fun MainMenuScreen(navController: NavHostController, userViewModel: UserViewMode
         Column(modifier = Modifier.padding(innerPadding)) {
             LazyColumn {
                 items(posts) { post ->
-                    Column(modifier = Modifier.padding(8.dp)) {
-                        Text(
-                            text = "${post.nickname} @${post.userId}",
-                            fontSize = 20.sp
-                        )
+                    val totalLikes = remember { mutableStateOf(0) }
+                    val totalComments = remember { mutableStateOf(0) }
+                    
+                    // 각 게시글마다 총 좋아요 수와 댓글 수를 가져옴
+                    LaunchedEffect(post.postId) {
+                        totalLikes.value = getTotalLikes(post.postId)
+                        totalComments.value = getTotalComments(post.postId)
+                    }
+                    
+                    Column(modifier = Modifier
+                        .padding(8.dp)
+                        .clickable { navController.navigate("seepost/${post.postId}") }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        ) {
+                            Image(
+                                imageVector = Icons.Default.AccountCircle,
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clickable { navController.navigate("profile/${post.userId}") },
+                                colorFilter = ColorFilter.tint(Color.Gray)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "${post.nickname} @${post.userId}",
+                                fontSize = 20.sp
+                            )
+                        }
                         Text(post.content ?: "내용 없음")
                         Spacer(modifier = Modifier.height(4.dp))
                         Row {
-                            Text("댓글 수: ${post.numOfLikes ?: 0}", color = Color.Blue)
-                            Text(" | 좋아요 수: ${post.numOfLikes ?: 0}", color = Color.Blue)
+                            Text("총 댓글 수: ${totalComments.value}", color = Color.Blue)
+                            Text(" | 총 좋아요 수: ${totalLikes.value}", color = Color.Blue)
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text("태그: ${post.tag ?: "없음"}", color = Color.Gray)

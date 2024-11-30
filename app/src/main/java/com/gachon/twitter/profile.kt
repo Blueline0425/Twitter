@@ -43,7 +43,7 @@ fun ProfileScreen(navController: NavHostController, userId: String, userViewMode
     val isFollowing = remember { mutableStateOf(false) }
     val loggedInUserId = userViewModel.loggedInUserId.collectAsState().value
 
-    LaunchedEffect(userId, isFollowing.value) {
+    LaunchedEffect(userId) {
         nickname.value = getNicknameFromUserId(userId)
         isFollowing.value = checkIfFollowing(loggedInUserId.toString(), userId)
     }
@@ -102,7 +102,7 @@ fun ProfileScreen(navController: NavHostController, userId: String, userViewMode
                     }
                 }
             )
-            PostList(userId)
+            PostList(userId, navController)
         }
     }
 }
@@ -118,7 +118,7 @@ fun ProfileSection(
 ) {
     val followingCount = remember { mutableStateOf(0) }
     val followerCount = remember { mutableStateOf(0) }
-    val isFollowingState = remember { mutableStateOf(isFollowing) }
+    val isFollowingState = remember(isFollowing) { mutableStateOf(isFollowing) }
     
     LaunchedEffect(isFollowingState.value) {
         followingCount.value = getFollowingCount(userId)
@@ -229,7 +229,7 @@ fun ProfileSection(
 }
 
 @Composable
-fun PostList(userId: String) {
+fun PostList(userId: String, navController: NavHostController) {
     val posts = remember { mutableStateListOf<Post>() }
 
     LaunchedEffect(userId) {
@@ -239,16 +239,42 @@ fun PostList(userId: String) {
 
     LazyColumn {
         items(posts) { post ->
-            Column(modifier = Modifier.padding(8.dp)) {
-                Text(
-                    text = "${post.nickname} @${post.userId}",
-                    fontSize = 20.sp
-                )
+            val totalLikes = remember { mutableStateOf(0) }
+            val totalComments = remember { mutableStateOf(0) }
+            
+            LaunchedEffect(post.postId) {
+                totalLikes.value = getTotalLikes(post.postId)
+                totalComments.value = getTotalComments(post.postId)
+            }
+
+            Column(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .clickable { navController.navigate("seepost/${post.postId}") }
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                ) {
+                    Image(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = "Profile Picture",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clickable { navController.navigate("profile/${post.userId}") },
+                        colorFilter = ColorFilter.tint(Color.Gray)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "${post.nickname} @${post.userId}",
+                        fontSize = 20.sp
+                    )
+                }
                 Text(post.content ?: "내용 없음")
                 Spacer(modifier = Modifier.height(4.dp))
                 Row {
-                    Text("댓글 수: ${post.numOfLikes ?: 0}", color = Color.Blue)
-                    Text(" | 좋아요 수: ${post.numOfLikes ?: 0}", color = Color.Blue)
+                    Text("총 댓글 수: ${totalComments.value}", color = Color.Blue)
+                    Text(" | 총 좋아요 수: ${totalLikes.value}", color = Color.Blue)
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text("태그: ${post.tag ?: "없음"}", color = Color.Gray)
