@@ -175,7 +175,11 @@ fun SearchScreen(navController: NavHostController, userViewModel: UserViewModel)
                         results.firstOrNull() is Post -> {
                             LazyColumn {
                                 items(results as List<Post>) { post ->
-                                    Column(modifier = Modifier.padding(8.dp)) {
+                                    Column(
+                                        modifier = Modifier
+                                            .padding(8.dp)
+                                            .clickable { navController.navigate("seepost/${post.postId}") }
+                                    ) {
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             modifier = Modifier.padding(bottom = 4.dp)
