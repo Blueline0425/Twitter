@@ -626,20 +626,31 @@ suspend fun searchUsers(searchText: String): List<UserInfo> = withContext(Dispat
 }
 
 // 게시글 내용으로 검색
-suspend fun searchPosts(searchText: String): List<Post> = withContext(Dispatchers.IO) {
+suspend fun searchPosts(query: String): List<Post> = withContext(Dispatchers.IO) {
     val posts = mutableListOf<Post>()
     val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
+
     try {
+        Class.forName("com.mysql.jdbc.Driver")
         val connection: Connection = DriverManager.getConnection(url, user, passwd)
         val statement = connection.createStatement()
         val resultSet: ResultSet = statement.executeQuery(
             """
-            SELECT p.*, u.nickname
+            SELECT 
+                p.post_id, 
+                p.content, 
+                p.user_id, 
+                p.tag, 
+                p.upload_timestamp,
+                u.nickname,
+                (SELECT COUNT(*) FROM `like` l WHERE l.post_id = p.post_id) as num_of_likes,
+                (SELECT COUNT(*) FROM comment c WHERE c.post_id = p.post_id) as num_of_comments
             FROM post p
             JOIN user u ON p.user_id = u.user_id
-            WHERE p.content LIKE '%$searchText%'
+            WHERE p.content LIKE '%$query%' 
+            OR p.tag LIKE '%$query%'
             ORDER BY p.upload_timestamp DESC
             """
         )
@@ -649,6 +660,7 @@ suspend fun searchPosts(searchText: String): List<Post> = withContext(Dispatcher
                 postId = resultSet.getString("post_id"),
                 content = resultSet.getString("content"),
                 numOfLikes = resultSet.getInt("num_of_likes"),
+                numOfComments = resultSet.getInt("num_of_comments"),
                 userId = resultSet.getString("user_id"),
                 tag = resultSet.getString("tag"),
                 uploadTimestamp = resultSet.getTimestamp("upload_timestamp"),
@@ -663,6 +675,7 @@ suspend fun searchPosts(searchText: String): List<Post> = withContext(Dispatcher
     } catch (e: Exception) {
         e.printStackTrace()
     }
+
     return@withContext posts
 }
 
