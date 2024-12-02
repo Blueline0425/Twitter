@@ -24,7 +24,10 @@ class MainActivity : ComponentActivity() {
                     ProfileScreen(navController, userId, userViewModel)
                 }
                 composable("search") { SearchScreen(navController, userViewModel) }
+
+                // WritePostScreen에 userViewModel 전달
                 composable("post") { WritePostScreen(navController, userViewModel) }
+
                 composable("following/{userId}") { backStackEntry ->
                     val userId = backStackEntry.arguments?.getString("userId") ?: ""
                     FollowingScreen(navController, userId)
@@ -35,7 +38,6 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("changepw") { ChangePasswordScreen(navController) }
                 composable("createuser") { CreateUserUI(navController) }
-                //composable("seepost") { SeePost(navController) }
                 composable("seecomment/{postId}/{commentId}") { backStackEntry ->
                     val postId = backStackEntry.arguments?.getString("postId") ?: ""
                     val commentId = backStackEntry.arguments?.getString("commentId") ?: ""

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.navigation.NavHostController
 import android.widget.Toast
 import androidx.compose.runtime.collectAsState
@@ -45,10 +46,10 @@ fun WritePostScreen(navController: NavHostController, userViewModel: UserViewMod
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Write a Post") },
+                title = { Text("새 게시글 작성", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.Close, contentDescription = "Close")
+                        Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
                     }
                 },
                 actions = {
@@ -76,7 +77,7 @@ fun WritePostScreen(navController: NavHostController, userViewModel: UserViewMod
                         Text("게시하기", color = if (content.value.isNotBlank()) Color.White else Color.Gray)
                     }
                 },
-                backgroundColor = MaterialTheme.colors.primary
+                backgroundColor = Color(0xFF1DA1F2)
             )
         }
     ) { innerPadding ->
@@ -90,12 +91,12 @@ fun WritePostScreen(navController: NavHostController, userViewModel: UserViewMod
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                    contentDescription = "Profile Icon",
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = "Profile Picture",
                     modifier = Modifier
-                        .size(40.dp)
-                        .background(Color.Gray, CircleShape)
+                        .size(40.dp),
+                    tint = Color.Gray
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))

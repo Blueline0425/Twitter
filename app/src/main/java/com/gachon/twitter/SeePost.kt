@@ -1,40 +1,28 @@
 package com.gachon.twitter
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.rememberNavController
-import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.sql.DriverManager
-import java.sql.Connection
-import java.sql.ResultSet
-import android.widget.Toast
-import androidx.compose.foundation.clickable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
 
 data class Comment(
     val commentId: String,
@@ -81,14 +69,6 @@ fun SeePost(navController: NavHostController, postId: String, userViewModel: Use
         totalComments.value = getTotalComments(postId)
     }
 
-    // 좋아요나 댓글 변경 시 총계 업데이트
-    val updateTotals = {
-        scope.launch {
-            totalLikes.value = getTotalLikes(postId)
-            totalComments.value = getTotalComments(postId)
-        }
-    }
-
     // 게시글 좋아요 처리 함수
     val handlePostLike: () -> Unit = {
         scope.launch {
@@ -97,9 +77,8 @@ fun SeePost(navController: NavHostController, postId: String, userViewModel: Use
             } else {
                 likeItem(loggedInUserId.toString(), postId, null)
             }
-            post.value = fetchPostById(postId)
             isPostLiked.value = !isPostLiked.value
-            updateTotals()
+            totalLikes.value = getTotalLikes(postId)
         }
     }
 
@@ -111,41 +90,40 @@ fun SeePost(navController: NavHostController, postId: String, userViewModel: Use
             } else {
                 likeItem(loggedInUserId.toString(), null, commentId)
             }
-            // 댓글 목록 새로고침 시 통계도 함께 업데이트
-            val rawComments = fetchComments(postId)
-            comments.value = rawComments.map { comment ->
+            val updatedComments = fetchComments(postId)
+            comments.value = updatedComments.map { comment ->
                 val stats = getCommentStats(comment.commentId)
                 comment.copy(
                     numOfReplies = stats.totalReplies,
                     totalLikes = stats.totalLikes
                 )
             }
-            commentLikeStates.value = comments.value.associate { c ->
-                c.commentId to checkIfLiked(loggedInUserId.toString(), null, c.commentId)
+            commentLikeStates.value = comments.value.associate { comment ->
+                comment.commentId to checkIfLiked(loggedInUserId.toString(), null, comment.commentId)
             }
             totalLikes.value = getTotalLikes(postId)
-            totalComments.value = getTotalComments(postId)
         }
     }
 
     // 댓글 작성 처리 함수
     val handleCommentSubmit = {
         if (newCommentText.value.isBlank()) {
-            Toast.makeText(context, "내용을 입력하세요", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "내용을 입력하세요", Toast.LENGTH_SHORT).show() // Toast 사용
         } else {
             scope.launch {
                 val commentId = generateUniqueCommentId(15)
                 createComment(commentId, postId, loggedInUserId.toString(), newCommentText.value)
                 newCommentText.value = ""
-                
+
                 // 데이터 새로고침
-                comments.value = fetchComments(postId)
-                post.value = fetchPostById(postId)
-                commentLikeStates.value = comments.value.associate { c ->
-                    c.commentId to checkIfLiked(loggedInUserId.toString(), null, c.commentId)
+                val updatedComments = fetchComments(postId)
+                comments.value = updatedComments.map { comment ->
+                    val stats = getCommentStats(comment.commentId)
+                    comment.copy(
+                        numOfReplies = stats.totalReplies,
+                        totalLikes = stats.totalLikes
+                    )
                 }
-                
-                // 총계 업데이트
                 totalLikes.value = getTotalLikes(postId)
                 totalComments.value = getTotalComments(postId)
             }
@@ -158,9 +136,11 @@ fun SeePost(navController: NavHostController, postId: String, userViewModel: Use
                 title = { Text("게시물 보기") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
-                }
+                },
+                backgroundColor = Color(0xFF1DA1F2),
+                contentColor = Color.White
             )
         }
     ) { innerPadding ->
@@ -168,6 +148,7 @@ fun SeePost(navController: NavHostController, postId: String, userViewModel: Use
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
+                .background(Color.White)
         ) {
             Column(
                 modifier = Modifier
@@ -188,32 +169,33 @@ fun SeePost(navController: NavHostController, postId: String, userViewModel: Use
                             Column {
                                 Text(
                                     text = "${currentPost.nickname} @${currentPost.userId}",
-                                    fontSize = 20.sp
+                                    fontSize = 20.sp,
+                                    color = Color.Black
                                 )
                             }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(currentPost.content ?: "내용 없음")
+                        Text(currentPost.content ?: "내용 없음", color = Color.Black)
                         Spacer(modifier = Modifier.height(4.dp))
 
                         Row {
-                            Text("댓글 수: ${totalComments.value}", color = Color.Blue)
+                            Text("댓글 수: ${totalComments.value}", color = Color(0xFF1DA1F2))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = "좋아요 ${totalLikes.value}",
                                 modifier = Modifier.clickable { handlePostLike() },
-                                color = if (isPostLiked.value) Color.Blue else Color.Gray 
+                                color = if (isPostLiked.value) Color.Blue else Color.Gray
                             )
                         }
 
                         Spacer(modifier = Modifier.height(4.dp))
                         Text("태그: ${currentPost.tag ?: "없음"}", color = Color.Gray)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("업로드 시간: ${currentPost.uploadTimestamp?.let { formatDate(it) } ?: "알 수 없음"}")
+                        Text("업로드 시간: ${currentPost.uploadTimestamp?.let { formatDate(it) } ?: "알 수 없음"}", color = Color.Gray)
                     }
 
-                    Divider(color = Color.Black, thickness = 1.dp)
+                    Divider(color = Color.Gray, thickness = 1.dp)
 
                     // 댓글 목록
                     comments.value.forEach { comment ->
@@ -228,7 +210,7 @@ fun SeePost(navController: NavHostController, postId: String, userViewModel: Use
                     }
                 }
             }
-            
+
             // 하단 댓글 입력 필드
             Column(
                 modifier = Modifier
@@ -236,7 +218,7 @@ fun SeePost(navController: NavHostController, postId: String, userViewModel: Use
                     .fillMaxWidth()
                     .background(Color.White)
             ) {
-                Divider(color = Color.LightGray)
+                Divider(color = Color.Gray)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -249,17 +231,22 @@ fun SeePost(navController: NavHostController, postId: String, userViewModel: Use
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 8.dp),
-                        placeholder = { Text("댓글을 입력하세요") },
+                        placeholder = { Text("댓글을 입력하세요", color = Color.Gray) },
                         colors = TextFieldDefaults.textFieldColors(
                             backgroundColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
+                            focusedIndicatorColor = Color(0xFF1DA1F2),
+                            unfocusedIndicatorColor = Color.Gray,
+                            cursorColor = Color(0xFF1DA1F2)
                         ),
                         singleLine = true
                     )
                     Button(
                         onClick = { handleCommentSubmit() },
-                        enabled = newCommentText.value.isNotBlank()
+                        enabled = newCommentText.value.isNotBlank(),
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = Color(0xFF1DA1F2),
+                            contentColor = Color.White
+                        )
                     ) {
                         Text("전송")
                     }
@@ -269,7 +256,6 @@ fun SeePost(navController: NavHostController, postId: String, userViewModel: Use
     }
 }
 
-// CommentItem 컴포저블 수정
 @Composable
 fun CommentItem(
     comment: Comment,
@@ -292,15 +278,15 @@ fun CommentItem(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Column {
-                Text(text = comment.nickname, style = MaterialTheme.typography.subtitle1)
-                Text(text = "@${comment.userId}", style = MaterialTheme.typography.caption)
+                Text(text = comment.nickname, style = MaterialTheme.typography.subtitle1, color = Color.Black)
+                Text(text = "@${comment.userId}", style = MaterialTheme.typography.caption, color = Color.Gray)
             }
         }
-        
+
         Spacer(modifier = Modifier.height(4.dp))
-        Text(text = comment.content, style = MaterialTheme.typography.body1)
+        Text(text = comment.content, style = MaterialTheme.typography.body1, color = Color.Black)
         Spacer(modifier = Modifier.height(4.dp))
-        
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -324,6 +310,6 @@ fun CommentItem(
                 )
             }
         }
-        Divider(modifier = Modifier.padding(top = 8.dp))
+        Divider(modifier = Modifier.padding(top = 8.dp), color = Color.Gray)
     }
 }

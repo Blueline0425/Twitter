@@ -3,7 +3,7 @@ package com.gachon.twitter
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -13,8 +13,6 @@ import androidx.navigation.NavHostController
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,15 +21,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.launch
+import android.widget.Toast
 
 @Composable
 fun SeeComment(navController: NavHostController, postId: String, commentId: String, userViewModel: UserViewModel) {
@@ -43,19 +39,25 @@ fun SeeComment(navController: NavHostController, postId: String, commentId: Stri
     val loggedInUserId = userViewModel.loggedInUserId.collectAsState().value
     val replyLikeStates = remember { mutableStateOf(mapOf<String, Boolean>()) }
 
+    // 명확한 색상 값 설정
+    val primaryColor = Color(0xFF1DA1F2)  // Twitter Blue
+    val onPrimaryColor = Color.White
+    val backgroundColor = Color.White
+    val onSurfaceColor = Color.Gray
+    val likedColor = Color.Blue
+
     // 초기 데이터 로딩
     LaunchedEffect(commentId) {
-        // 메인 댓글의 좋아요 상태도 초기화해야 함
         val mainCommentLiked = checkIfLiked(loggedInUserId.toString(), null, commentId)
         replyLikeStates.value = mapOf(commentId to mainCommentLiked)
-        
+
         val rawComment = fetchCommentById(commentId)
         val stats = getCommentStats(commentId)
         comment.value = rawComment?.copy(
             numOfReplies = stats.totalReplies,
             totalLikes = stats.totalLikes
         )
-        
+
         val rawReplies = fetchReplies(commentId)
         replies.value = rawReplies.map { reply ->
             val replyStats = getCommentStats(reply.commentId)
@@ -64,13 +66,30 @@ fun SeeComment(navController: NavHostController, postId: String, commentId: Stri
                 totalLikes = replyStats.totalLikes
             )
         }
-        // 대댓글들의 좋아요 상태를 기존 맵에 추가
         replyLikeStates.value = replyLikeStates.value + replies.value.associate { reply ->
             reply.commentId to checkIfLiked(loggedInUserId.toString(), null, reply.commentId)
         }
     }
 
     // 댓글 좋아요 처리 함수
+    val handleMainCommentLike = {
+        scope.launch {
+            if (replyLikeStates.value[commentId] == true) {
+                unlikeItem(loggedInUserId.toString(), null, commentId)
+            } else {
+                likeItem(loggedInUserId.toString(), null, commentId)
+            }
+            val rawComment = fetchCommentById(commentId)
+            val stats = getCommentStats(commentId)
+            comment.value = rawComment?.copy(
+                numOfReplies = stats.totalReplies,
+                totalLikes = stats.totalLikes
+            )
+            replyLikeStates.value = replyLikeStates.value + (commentId to !(replyLikeStates.value[commentId] ?: false))
+        }
+    }
+
+    // 대댓글 좋아요 처리 함수
     val handleReplyLike = { replyId: String ->
         scope.launch {
             if (replyLikeStates.value[replyId] == true) {
@@ -78,7 +97,6 @@ fun SeeComment(navController: NavHostController, postId: String, commentId: Stri
             } else {
                 likeItem(loggedInUserId.toString(), null, replyId)
             }
-            // 댓글 목록과 메인 댓글 모두 새로고침
             val rawReplies = fetchReplies(commentId)
             replies.value = rawReplies.map { reply ->
                 val stats = getCommentStats(reply.commentId)
@@ -87,35 +105,9 @@ fun SeeComment(navController: NavHostController, postId: String, commentId: Stri
                     totalLikes = stats.totalLikes
                 )
             }
-            val rawComment = fetchCommentById(commentId)
-            val mainStats = getCommentStats(commentId)
-            comment.value = rawComment?.copy(
-                numOfReplies = mainStats.totalReplies,
-                totalLikes = mainStats.totalLikes
-            )
             replyLikeStates.value = replies.value.associate { r ->
                 r.commentId to checkIfLiked(loggedInUserId.toString(), null, r.commentId)
             }
-        }
-    }
-
-    // 댓인 댓글 좋아요 처리 함수
-    val handleMainCommentLike = {
-        scope.launch {
-            if (replyLikeStates.value[commentId] == true) {
-                unlikeItem(loggedInUserId.toString(), null, commentId)
-            } else {
-                likeItem(loggedInUserId.toString(), null, commentId)
-            }
-            // 메인 댓글 정보 새로고침
-            val rawComment = fetchCommentById(commentId)
-            val stats = getCommentStats(commentId)
-            comment.value = rawComment?.copy(
-                numOfReplies = stats.totalReplies,
-                totalLikes = stats.totalLikes
-            )
-            // 좋아요 상태 토글
-            replyLikeStates.value = replyLikeStates.value + (commentId to !(replyLikeStates.value[commentId] ?: false))
         }
     }
 
@@ -129,9 +121,8 @@ fun SeeComment(navController: NavHostController, postId: String, commentId: Stri
                 createComment(newCommentId, postId, loggedInUserId.toString(), newReplyText.value, commentId)
                 newReplyText.value = ""
 
-                // 데이터 새로고침 (메인 댓글 포함)
                 replies.value = fetchReplies(commentId)
-                comment.value = fetchCommentById(commentId)  // 메인 댓글 정보도 업데이트
+                comment.value = fetchCommentById(commentId)
                 replyLikeStates.value = replies.value.associate { r ->
                     r.commentId to checkIfLiked(loggedInUserId.toString(), null, r.commentId)
                 }
@@ -145,9 +136,11 @@ fun SeeComment(navController: NavHostController, postId: String, commentId: Stri
                 title = { Text("댓글 보기") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = onPrimaryColor)
                     }
-                }
+                },
+                backgroundColor = primaryColor,
+                contentColor = onPrimaryColor
             )
         }
     ) { innerPadding ->
@@ -155,6 +148,7 @@ fun SeeComment(navController: NavHostController, postId: String, commentId: Stri
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
+                .background(backgroundColor)
         ) {
             Column(
                 modifier = Modifier
@@ -169,38 +163,38 @@ fun SeeComment(navController: NavHostController, postId: String, commentId: Stri
                                 imageVector = Icons.Default.AccountCircle,
                                 contentDescription = "Profile Picture",
                                 modifier = Modifier.size(48.dp),
-                                colorFilter = ColorFilter.tint(Color.Gray)
+                                colorFilter = ColorFilter.tint(onSurfaceColor)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
                                 Text(
                                     text = "${currentComment.nickname} @${currentComment.userId}",
-                                    fontSize = 20.sp
+                                    fontSize = 20.sp,
+                                    color = Color.Black
                                 )
                             }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(currentComment.content)
+                        Text(currentComment.content, color = Color.Black)
                         Spacer(modifier = Modifier.height(4.dp))
 
                         Row {
                             Text(
                                 text = "댓글 수: ${currentComment.numOfReplies}",
-                                color = Color.Gray
+                                color = onSurfaceColor
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = "좋아요 ${currentComment.totalLikes}",
                                 modifier = Modifier.clickable { handleMainCommentLike() },
-                                color = if (replyLikeStates.value[commentId] == true) Color.Blue else Color.Gray
+                                color = if (replyLikeStates.value[commentId] == true) likedColor else onSurfaceColor
                             )
                         }
                     }
 
-                    Divider(color = Color.Black, thickness = 1.dp)
+                    Divider(color = onSurfaceColor, thickness = 1.dp)
 
-                    // 댓글 목록
                     replies.value.forEach { reply ->
                         CommentItem(
                             comment = reply,
@@ -212,14 +206,13 @@ fun SeeComment(navController: NavHostController, postId: String, commentId: Stri
                 }
             }
 
-            // 하단 댓글 입력 필드
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(backgroundColor)
             ) {
-                Divider(color = Color.LightGray)
+                Divider(color = onSurfaceColor)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -232,17 +225,22 @@ fun SeeComment(navController: NavHostController, postId: String, commentId: Stri
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 8.dp),
-                        placeholder = { Text("댓글을 입력하세요") },
+                        placeholder = { Text("댓글을 입력하세요", color = onSurfaceColor) },
                         colors = TextFieldDefaults.textFieldColors(
                             backgroundColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
+                            focusedIndicatorColor = primaryColor,
+                            unfocusedIndicatorColor = onSurfaceColor,
+                            cursorColor = primaryColor
                         ),
                         singleLine = true
                     )
                     Button(
                         onClick = { handleReplySubmit() },
-                        enabled = newReplyText.value.isNotBlank()
+                        enabled = newReplyText.value.isNotBlank(),
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = primaryColor,
+                            contentColor = onPrimaryColor
+                        )
                     ) {
                         Text("전송")
                     }
@@ -251,6 +249,3 @@ fun SeeComment(navController: NavHostController, postId: String, commentId: Stri
         }
     }
 }
-
-
-

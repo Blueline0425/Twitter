@@ -8,10 +8,10 @@ import kotlinx.coroutines.withContext
 import java.sql.Timestamp
 
 
-
+//192.168.219.101 엔 자기 컴퓨터에서 cmd 에 ipconfig 쳐서 나온 ipv4 주소로 수정
 suspend fun fetchPosts(loggedInUserId: String): List<Post> = withContext(Dispatchers.IO) {
     val posts = mutableListOf<Post>()
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -62,7 +62,7 @@ suspend fun fetchPosts(loggedInUserId: String): List<Post> = withContext(Dispatc
 
 suspend fun getNicknameFromUserId(userId: String): String = withContext(Dispatchers.IO) {
     var nickname = "unknown"
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -87,7 +87,7 @@ suspend fun getNicknameFromUserId(userId: String): String = withContext(Dispatch
 
 suspend fun fetchChatList(loggedInUserId: String): List<Message> = withContext(Dispatchers.IO) {
     val messages = mutableListOf<Message>()
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -136,7 +136,7 @@ suspend fun fetchChatList(loggedInUserId: String): List<Message> = withContext(D
 }
 
 suspend fun validateUser(userId: String, password: String): Pair<Boolean, String> = withContext(Dispatchers.IO) {
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
     var message = "일치하는 ID가 없습니다"
@@ -171,7 +171,7 @@ suspend fun validateUser(userId: String, password: String): Pair<Boolean, String
 
 suspend fun fetchMessagesWithUser(userId: String, loggedInUserId: String): List<Message> = withContext(Dispatchers.IO) {
     val messages = mutableListOf<Message>()
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -213,7 +213,7 @@ suspend fun fetchMessagesWithUser(userId: String, loggedInUserId: String): List<
 
 
 suspend fun markMessagesAsRead(senderId: String, loggedInUserId: String) = withContext(Dispatchers.IO) {
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -242,7 +242,7 @@ suspend fun markMessagesAsRead(senderId: String, loggedInUserId: String) = withC
 
 suspend fun sendMessage(senderId: String, receiverId: String, content: String) {
     withContext(Dispatchers.IO) {
-        val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+        val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
         val user = "admin"
         val passwd = "1234"
 
@@ -268,7 +268,7 @@ suspend fun sendMessage(senderId: String, receiverId: String, content: String) {
 }
 
 suspend fun checkUserIdDuplicate(userId: String): Boolean = withContext(Dispatchers.IO) {
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
     var isDuplicate = false
@@ -294,7 +294,7 @@ suspend fun checkUserIdDuplicate(userId: String): Boolean = withContext(Dispatch
 
 suspend fun createUser(userId: String, password: String, nickname: String) {
     withContext(Dispatchers.IO) {
-        val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+        val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
         val user = "admin"
         val passwd = "1234"
 
@@ -317,7 +317,7 @@ suspend fun createUser(userId: String, password: String, nickname: String) {
 }
 suspend fun changePassword(userId: String, newPassword: String) {
     withContext(Dispatchers.IO) {
-        val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+        val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
         val user = "admin"
         val passwd = "1234"
 
@@ -339,7 +339,7 @@ suspend fun changePassword(userId: String, newPassword: String) {
 }
 
 suspend fun checkIfFollowing(loggedInUserId: String, userId: String): Boolean = withContext(Dispatchers.IO) {
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
     var isFollowing = false
@@ -366,7 +366,7 @@ suspend fun checkIfFollowing(loggedInUserId: String, userId: String): Boolean = 
 }
 
 suspend fun followUser(followerId: String, followingId: String) = withContext(Dispatchers.IO) {
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -388,7 +388,7 @@ suspend fun followUser(followerId: String, followingId: String) = withContext(Di
 }
 
 suspend fun unfollowUser(followerId: String, followingId: String) = withContext(Dispatchers.IO) {
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -410,7 +410,7 @@ suspend fun unfollowUser(followerId: String, followingId: String) = withContext(
 
 suspend fun fetchPostsForUser(userId: String): List<Post> = withContext(Dispatchers.IO) {
     val posts = mutableListOf<Post>()
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -454,7 +454,7 @@ suspend fun fetchPostsForUser(userId: String): List<Post> = withContext(Dispatch
 // 팔로잉 수를 가져오는 함수 (내가 팔로우한 사람의 수)
 suspend fun getFollowingCount(userId: String): Int = withContext(Dispatchers.IO) {
     var count = 0
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -482,7 +482,7 @@ suspend fun getFollowingCount(userId: String): Int = withContext(Dispatchers.IO)
 // 특로워 수를 가져오는 함수 (나를 팔로우하는 사람의 수)
 suspend fun getFollowerCount(userId: String): Int = withContext(Dispatchers.IO) {
     var count = 0
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -510,7 +510,7 @@ suspend fun getFollowerCount(userId: String): Int = withContext(Dispatchers.IO) 
 // 특정 사용자가 팔로우하는 사용자 목록 가져오기
 suspend fun getFollowingList(userId: String): List<UserInfo> = withContext(Dispatchers.IO) {
     val followingList = mutableListOf<UserInfo>()
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -547,7 +547,7 @@ suspend fun getFollowingList(userId: String): List<UserInfo> = withContext(Dispa
 // 특정 사용자를 팔로우하는 사용자 목록 가져오기
 suspend fun getFollowerList(userId: String): List<UserInfo> = withContext(Dispatchers.IO) {
     val followerList = mutableListOf<UserInfo>()
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -584,7 +584,7 @@ suspend fun getFollowerList(userId: String): List<UserInfo> = withContext(Dispat
 // 사용자 ID로 검색
 suspend fun searchUsers(searchText: String): List<UserInfo> = withContext(Dispatchers.IO) {
     val users = mutableListOf<UserInfo>()
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
     try {
@@ -618,7 +618,7 @@ suspend fun searchUsers(searchText: String): List<UserInfo> = withContext(Dispat
 // 게시글 내용으로 검색
 suspend fun searchPosts(searchText: String): List<Post> = withContext(Dispatchers.IO) {
     val posts = mutableListOf<Post>()
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
     try {
@@ -682,7 +682,7 @@ data class Post(
 
 suspend fun fetchPostById(postId: String): Post? = withContext(Dispatchers.IO) {
     var post: Post? = null
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -736,7 +736,7 @@ suspend fun validateTaggedUsers(taggedUsers: List<String>): Boolean = withContex
         return@withContext false
     }
     
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -763,7 +763,7 @@ suspend fun validateTaggedUsers(taggedUsers: List<String>): Boolean = withContex
 
 // 게시글 생성
 suspend fun createPost(postId: String, userId: String, content: String, tag: String?) = withContext(Dispatchers.IO) {
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -797,7 +797,7 @@ fun generateRandomString(length: Int): String {
 }
 
 suspend fun generateUniquePostId(length: Int): String = withContext(Dispatchers.IO) {
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
     
@@ -836,7 +836,7 @@ suspend fun generateUniquePostId(length: Int): String = withContext(Dispatchers.
 // 게시물의 댓글 조회
 suspend fun fetchComments(postId: String): List<Comment> = withContext(Dispatchers.IO) {
     val comments = mutableListOf<Comment>()
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -886,7 +886,7 @@ suspend fun fetchComments(postId: String): List<Comment> = withContext(Dispatche
 // 댓글의 대댓글 조회
 suspend fun fetchReplies(commentId: String): List<Comment> = withContext(Dispatchers.IO) {
     val replies = mutableListOf<Comment>()
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -936,7 +936,7 @@ suspend fun fetchReplies(commentId: String): List<Comment> = withContext(Dispatc
 // 좋아 상태 인
 suspend fun checkIfLiked(userId: String, postId: String?, commentId: String?): Boolean = withContext(Dispatchers.IO) {
     var isLiked = false
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
 
@@ -966,7 +966,7 @@ suspend fun checkIfLiked(userId: String, postId: String?, commentId: String?): B
 
 // 게시글/댓글 좋아요
 suspend fun likeItem(userId: String, postId: String?, commentId: String?) = withContext(Dispatchers.IO) {
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
     try {
@@ -1007,7 +1007,7 @@ suspend fun likeItem(userId: String, postId: String?, commentId: String?) = with
 
 // 게시글/댓글 좋아요 취소
 suspend fun unlikeItem(userId: String, postId: String?, commentId: String?) = withContext(Dispatchers.IO) {
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
     try {
@@ -1035,7 +1035,7 @@ suspend fun unlikeItem(userId: String, postId: String?, commentId: String?) = wi
 // 게시글의 총 좋아요 수 계산 (게시글 직접 좋아요 + 댓글 좋아요)
 suspend fun getTotalLikes(postId: String): Int = withContext(Dispatchers.IO) {
     var totalLikes = 0
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
     
@@ -1067,7 +1067,7 @@ suspend fun getTotalLikes(postId: String): Int = withContext(Dispatchers.IO) {
 // 게시글의 총 댓글 수 계산 (직접 댓글 + 대댓글)
 suspend fun getTotalComments(postId: String): Int = withContext(Dispatchers.IO) {
     var totalComments = 0
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
     try {
@@ -1109,7 +1109,7 @@ suspend fun generateUniqueCommentId(length: Int): String = withContext(Dispatche
 
 // 댓글 ID 존재 여부 확인
 suspend fun isCommentIdExists(commentId: String): Boolean = withContext(Dispatchers.IO) {
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
     
@@ -1142,7 +1142,7 @@ suspend fun createComment(
     content: String,
     parentCommentId: String? = null  // 대댓글인 경우 부모 댓글 ID 전달
 ) = withContext(Dispatchers.IO) {
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
     
@@ -1174,7 +1174,7 @@ suspend fun createComment(
 
 suspend fun fetchCommentById(commentId: String): Comment? = withContext(Dispatchers.IO) {
     var comment: Comment? = null
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
     
@@ -1223,7 +1223,7 @@ suspend fun fetchCommentById(commentId: String): Comment? = withContext(Dispatch
 // 댓글의 총 좋아요 수 계산 (현재 댓글 + 모든 하위 댓글의 좋아요)
 suspend fun getTotalCommentLikes(commentId: String): Int = withContext(Dispatchers.IO) {
     var totalLikes = 0
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
     
@@ -1266,7 +1266,7 @@ suspend fun getTotalCommentLikes(commentId: String): Int = withContext(Dispatche
 // 댓글의 총 대댓글 수 계산 (모든 하위 댓글 포함)
 suspend fun getTotalCommentReplies(commentId: String): Int = withContext(Dispatchers.IO) {
     var totalReplies = 0
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
     
@@ -1303,7 +1303,7 @@ data class CommentStats(
 suspend fun getCommentStats(commentId: String): CommentStats = withContext(Dispatchers.IO) {
     var totalReplies = 0
     var totalLikes = 0
-    val url = "jdbc:mysql://192.168.123.104/twitter2?useSSL=false"
+    val url = "jdbc:mysql://192.168.219.101/twitter3?useSSL=false"
     val user = "admin"
     val passwd = "1234"
     

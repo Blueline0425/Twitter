@@ -1,25 +1,33 @@
 package com.gachon.twitter
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavHostController
-import androidx.compose.foundation.clickable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.navigation.compose.rememberNavController
-import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 
 @Composable
 fun ChangePasswordScreen(navController: NavHostController) {
+    // 명확한 색상 값 설정
+    val primaryColor = Color(0xFF1DA1F2)  // Twitter Blue
+    val onPrimaryColor = Color.White
+    val backgroundColor = Color.White
+    val buttonDisabledColor = Color.LightGray
+
     val userId = remember { mutableStateOf("") }
     val currentPassword = remember { mutableStateOf("") }
     val newPassword = remember { mutableStateOf("") }
@@ -32,6 +40,7 @@ fun ChangePasswordScreen(navController: NavHostController) {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+            .background(backgroundColor)  // 배경 색상 변경
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -42,7 +51,7 @@ fun ChangePasswordScreen(navController: NavHostController) {
                 modifier = Modifier
                     .clickable { navController.popBackStack() }
                     .padding(8.dp),
-                style = MaterialTheme.typography.h4
+                fontSize = 24.sp  // 텍스트 크기 명확하게 설정
             )
         }
 
@@ -51,8 +60,15 @@ fun ChangePasswordScreen(navController: NavHostController) {
         TextField(
             value = userId.value,
             onValueChange = { userId.value = it },
-            label = { Text("아이디") },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("아이디", color = primaryColor) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.textFieldColors(
+                focusedLabelColor = primaryColor, // 선택된 레이블 색상 설정
+                focusedIndicatorColor = primaryColor,
+                unfocusedIndicatorColor = Color.Gray,
+                cursorColor = primaryColor,
+                backgroundColor = Color.Transparent
+            )
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -60,8 +76,15 @@ fun ChangePasswordScreen(navController: NavHostController) {
         TextField(
             value = currentPassword.value,
             onValueChange = { currentPassword.value = it },
-            label = { Text("현재 비밀번호") },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("현재 비밀번호", color = primaryColor) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.textFieldColors(
+                focusedLabelColor = primaryColor, // 선택된 레이블 색상 설정
+                focusedIndicatorColor = primaryColor,
+                unfocusedIndicatorColor = Color.Gray,
+                cursorColor = primaryColor,
+                backgroundColor = Color.Transparent
+            )
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -69,8 +92,15 @@ fun ChangePasswordScreen(navController: NavHostController) {
         TextField(
             value = newPassword.value,
             onValueChange = { newPassword.value = it },
-            label = { Text("새 비밀번호") },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("새 비밀번호", color = primaryColor) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.textFieldColors(
+                focusedLabelColor = primaryColor, // 선택된 레이블 색상 설정
+                focusedIndicatorColor = primaryColor,
+                unfocusedIndicatorColor = Color.Gray,
+                cursorColor = primaryColor,
+                backgroundColor = Color.Transparent
+            )
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -89,10 +119,12 @@ fun ChangePasswordScreen(navController: NavHostController) {
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(backgroundColor = if (isButtonEnabled) Color(0xFF1DA1F2) else Color.LightGray),
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = if (isButtonEnabled) primaryColor else buttonDisabledColor
+            ),
             enabled = isButtonEnabled
         ) {
-            Text("비밀번호 변경", color = Color.White)
+            Text("비밀번호 변경", color = onPrimaryColor)
         }
     }
 }

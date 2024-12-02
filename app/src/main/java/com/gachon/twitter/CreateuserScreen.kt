@@ -1,10 +1,7 @@
 package com.gachon.twitter
 
 import android.content.Context
-import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.sp  // sp를 사용하기 위한 import 추가
 import kotlinx.coroutines.launch
 
 @Composable
@@ -30,6 +28,11 @@ fun CreateUserUI(navController: NavHostController) {
     val coroutineScope = rememberCoroutineScope()
 
     val isButtonEnabled = nickname.value.isNotBlank() && userId.value.isNotBlank() && password.value.isNotBlank()
+
+    val primaryTextColor = Color(0xFF1DA1F2)  // Twitter Blue
+    val buttonEnabledColor = Color.Gray
+    val buttonDisabledColor = Color.LightGray
+    val buttonTextColor = Color.White
 
     Column(
         modifier = Modifier
@@ -48,15 +51,13 @@ fun CreateUserUI(navController: NavHostController) {
                 modifier = Modifier
                     .clickable { navController.popBackStack() }
                     .padding(8.dp),
-                style = MaterialTheme.typography.h4
+                fontSize = 24.sp,  // sp 사용
+                color = primaryTextColor
             )
             Image(
                 painter = painterResource(id = R.drawable.app_icon),
                 contentDescription = null,
                 modifier = Modifier.size(50.dp)
-
-
-
             )
             Spacer(modifier = Modifier.width(24.dp))
         }
@@ -65,7 +66,8 @@ fun CreateUserUI(navController: NavHostController) {
 
         Text(
             text = "계정을 생성하세요",
-            style = MaterialTheme.typography.h6,
+            fontSize = 20.sp,  // sp 사용
+            color = Color.Black,
             modifier = Modifier.align(Alignment.Start)
         )
 
@@ -74,8 +76,14 @@ fun CreateUserUI(navController: NavHostController) {
         TextField(
             value = nickname.value,
             onValueChange = { nickname.value = it },
-            label = { Text("닉네임") },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("닉네임", color = primaryTextColor) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = Color.Transparent,
+                focusedIndicatorColor = primaryTextColor,
+                unfocusedIndicatorColor = Color.Gray,
+                cursorColor = primaryTextColor
+            )
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -83,8 +91,14 @@ fun CreateUserUI(navController: NavHostController) {
         TextField(
             value = userId.value,
             onValueChange = { userId.value = it },
-            label = { Text("아이디") },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("아이디", color = primaryTextColor) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = Color.Transparent,
+                focusedIndicatorColor = primaryTextColor,
+                unfocusedIndicatorColor = Color.Gray,
+                cursorColor = primaryTextColor
+            )
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -92,8 +106,14 @@ fun CreateUserUI(navController: NavHostController) {
         TextField(
             value = password.value,
             onValueChange = { password.value = it },
-            label = { Text("비밀번호") },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("비밀번호", color = primaryTextColor) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = Color.Transparent,
+                focusedIndicatorColor = primaryTextColor,
+                unfocusedIndicatorColor = Color.Gray,
+                cursorColor = primaryTextColor
+            )
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -114,10 +134,10 @@ fun CreateUserUI(navController: NavHostController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
-            colors = ButtonDefaults.buttonColors(backgroundColor = if (isButtonEnabled) Color.Gray else Color.LightGray),
+            colors = ButtonDefaults.buttonColors(backgroundColor = if (isButtonEnabled) buttonEnabledColor else buttonDisabledColor),
             enabled = isButtonEnabled
         ) {
-            Text("다음", color = Color.White)
+            Text("다음", color = buttonTextColor)
         }
     }
 }
@@ -127,5 +147,3 @@ fun CreateUserUI(navController: NavHostController) {
 fun CreateUserPreview() {
     CreateUserUI(navController = rememberNavController())
 }
-
-
