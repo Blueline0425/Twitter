@@ -97,18 +97,28 @@ suspend fun fetchChatList(loggedInUserId: String): List<Message> = withContext(D
         val statement = connection.createStatement()
         val resultSet: ResultSet = statement.executeQuery(
             """
-            SELECT m.message_id, m.content, m.timestamp, u.nickname, u.user_id, m.is_read,
-                   m.sender_id, m.receiver_id
-            FROM message m
-            JOIN user u ON (m.sender_id = u.user_id OR m.receiver_id = u.user_id)
-            WHERE (m.receiver_id = '$loggedInUserId' OR m.sender_id = '$loggedInUserId')
-            AND u.user_id != '$loggedInUserId'
-            AND m.timestamp = (
-                SELECT MAX(m2.timestamp)
-                FROM message m2
-                WHERE (m2.receiver_id = '$loggedInUserId' OR m2.sender_id = '$loggedInUserId')
-                AND (m2.sender_id = u.user_id OR m2.receiver_id = u.user_id)
+            SELECT m.* FROM message m
+            JOIN (
+                SELECT 
+                    CASE 
+                        WHEN sender_id = '$loggedInUserId' THEN receiver_id
+                        ELSE sender_id
+                    END as chat_partner,
+                    MAX(timestamp) as last_message_time,
+                    MAX(message_id) as last_message_id
+                FROM message
+                WHERE sender_id = '$loggedInUserId' OR receiver_id = '$loggedInUserId'
+                GROUP BY 
+                    CASE 
+                        WHEN sender_id = '$loggedInUserId' THEN receiver_id
+                        ELSE sender_id
+                    END
+            ) latest ON (
+                (m.sender_id = latest.chat_partner OR m.receiver_id = latest.chat_partner)
+                AND m.timestamp = latest.last_message_time
+                AND m.message_id = latest.last_message_id
             )
+            WHERE m.sender_id = '$loggedInUserId' OR m.receiver_id = '$loggedInUserId'
             ORDER BY m.timestamp DESC
             """
         )

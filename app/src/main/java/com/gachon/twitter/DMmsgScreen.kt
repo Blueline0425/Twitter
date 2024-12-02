@@ -28,11 +28,15 @@ fun DMmsgScreen(navController: NavHostController, userId: String, nickname: Stri
     val coroutineScope = rememberCoroutineScope()
     val loggedInUserId = userViewModel.loggedInUserId.collectAsState().value
 
-    // 초기 메시지 로드를 위한 LaunchedEffect 추가
+    // 초기 메시지 로드와 읽음 처리를 위한 LaunchedEffect
     LaunchedEffect(userId, loggedInUserId) {
+        // 메시지 로드
         val initialMessages = fetchMessagesWithUser(userId, loggedInUserId.toString())
         messages.clear()
         messages.addAll(initialMessages)
+        
+        // 읽음 처리
+        markMessagesAsRead(userId, loggedInUserId.toString())
     }
 
     val listState = rememberLazyListState()

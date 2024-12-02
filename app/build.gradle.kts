@@ -73,6 +73,8 @@ dependencies {
     //mysql
     //implementation fileTree(dir: "C:\Users\yesjae\AndroidStudioProjects\Twitter\.idea\modules\app\lib\", include: ["*.jar"])
     //implementation("mysql:mysql-connector-java:8.0.15")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.5.4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:$1.5.4")
 
     // coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
